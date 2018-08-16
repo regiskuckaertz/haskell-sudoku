@@ -35,6 +35,7 @@ sample3 = ["1..9.7..3"
           ,".5.....4."
           ,"2..8.6..9"]
 
+digits :: [Digit]
 digits = ['1'..'9']
 
 sudoku :: Grid -> [Grid]
