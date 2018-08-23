@@ -39,25 +39,44 @@ digits :: [Digit]
 digits = ['1'..'9']
 
 sudoku :: Grid -> [Grid]
-sudoku = (filter valid) . expand
+sudoku = filter valid . expand . choices
 
 valid :: Grid -> Bool
-valid g = a && b && c
+valid g = all nodups (rows g) 
+       && all nodups (cols g) 
+       && all nodups (boxs g)
 
-groupValid :: Row Digit -> Bool
-
-rows :: Grid -> Grid
+rows :: Matrix a -> Matrix a
 rows = id
 
-columns :: Grid -> Grid
-columns [r] = [ [d] | d <- r ]
-columns (r:rs) = zipWith (:) r (columns rs)
+cols :: Matrix a -> Matrix a
+cols [r] = [ [d] | d <- r ]
+cols (r:rs) = zipWith (:) r (columns rs)
 
-boxes :: Grid -> Grid
-boxes = _
+boxs :: Matrix a -> Matrix a
+boxs = map ungroup . ungroup . map cols . group . map group
 
 group :: [a] -> [[a]]
 group [] = []
 group r = take 3 r : group (drop 3 r)
 
-expand :: Grid -> [Grid]
+ungroup :: [[a]] -> [a]
+ungroup = concat
+
+nodups :: Eq a => [a] -> Bool
+nodups [] = True
+nodups (x:xs) = nodups xs && all (/= x) xs
+
+choices :: Grid -> Matrix [Digit]
+choices = map (map choose)
+  where choose '.' = digits
+        choose d   = [d]
+
+expand :: Matrix [Digit] -> [Grid]
+expand = cp . map cp
+
+-- cartesian product, e.g.
+-- cp [[a,b],[c,d]] = [[a,c],[a,d],[b,c],[b,d]]
+cp :: [[a]] -> [[a]]
+cp [] = [[]]
+cp (xs:xss) = [ y:ys | y <- xs, ys <- xss' ] where xss' = cp xss
