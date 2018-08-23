@@ -56,6 +56,19 @@ cols (r:rs) = zipWith (:) r (columns rs)
 boxs :: Matrix a -> Matrix a
 boxs = map ungroup . ungroup . map cols . group . map group
 
+-- we can check that `boxs` is an involution, assuming `cols` is:
+-- boxs . boxs = map ungroup . ungroup . map cols . group . map group .
+--               map ungroup . ungroup . map cols . group . map group
+-- { functor laws }
+--             = map ungroup . ungroup . map cols . group . map (group . ungroup) .
+--               ungroup . map cols . group . map group
+-- { group . ungroup = id, twice }
+--             = map ungroup . ungroup . map cols . map cols . group . map group
+-- { cols . cols = id and functor law }
+--             = map ungroup . ungroup . group . map group
+-- { group . ungroup = id, twice and functor law }
+--             = id
+
 group :: [a] -> [[a]]
 group [] = []
 group r = take 3 r : group (drop 3 r)
@@ -63,15 +76,24 @@ group r = take 3 r : group (drop 3 r)
 ungroup :: [[a]] -> [a]
 ungroup = concat
 
+-- this is O(n^2) but since n = 9, it beats any constant
+-- factor of a logarithmic solution
 nodups :: Eq a => [a] -> Bool
 nodups [] = True
-nodups (x:xs) = nodups xs && all (/= x) xs
+nodups (x:xs) = nodups xs && x `notElem` xs
 
+-- naive choices: each blank cell can receive
+-- any valid digits, while filled cells can only
+-- receive what they already have
 choices :: Grid -> Matrix [Digit]
 choices = map (map choose)
   where choose '.' = digits
         choose d   = [d]
 
+-- naive expansion: we just compute the cartesian product
+-- for each row, giving us a grid where each row is made of
+-- all possible rows, then we compute the cartesian product
+-- of all the rows and get the list of all possible grids
 expand :: Matrix [Digit] -> [Grid]
 expand = cp . map cp
 
