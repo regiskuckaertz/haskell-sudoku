@@ -44,8 +44,8 @@ sudoku :: Grid -> [Grid]
 sudoku = filter valid . expand . choices
 
 valid :: Grid -> Bool
-valid g = all nodups (rows g) 
-       && all nodups (cols g) 
+valid g = all nodups (rows g)
+       && all nodups (cols g)
        && all nodups (boxs g)
 
 rows :: Matrix a -> Matrix a
@@ -57,6 +57,28 @@ cols (r:rs) = zipWith (:) r (cols rs)
 
 boxs :: Matrix a -> Matrix a
 boxs = map ungroup . ungroup . map cols . group . map group
+
+prune :: Matrix [Digit] -> Matrix [Digit]
+prune = pruneWith boxs . pruneWith rows . pruneWith cols
+
+pruneWith :: ( [[a]] -> [[a]] ) -> Matrix [Digit] -> Matrix [Digit]
+pruneWith f = f . map reduce . f
+
+singular :: [a] -> Bool
+singular [a] = True
+singular _   = False
+
+diff :: [a] -> [a] -> [a]
+diff [a] b
+  | elem a b = []
+  | otherwise = [a]
+diff [] _ = []
+diff (a:as) b = (diff [a] b) ++ (diff as b)
+
+trim :: [[a]] -> [[a]]
+trim ass =
+  let sings = concat (filter singular ass) in
+    ass minus sings
 
 -- we can check that `boxs` is an involution, assuming `cols` is:
 -- boxs . boxs = map ungroup . ungroup . map cols . group . map group .
