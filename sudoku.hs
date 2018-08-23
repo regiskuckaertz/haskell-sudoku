@@ -1,10 +1,12 @@
+module Sudoku where
+
 type Row a = [a]
 type Matrix a = [Row a]
 type Digit = Char
 type Grid = Matrix Digit
 
 -- sample3 is unsolvable
-sample1, sample2, sampl3 :: Grid
+sample1, sample2, sample3 :: Grid
 sample1 = ["2....1.38"
           ,"........5"
           ,".7...6..."
@@ -51,7 +53,7 @@ rows = id
 
 cols :: Matrix a -> Matrix a
 cols [r] = [ [d] | d <- r ]
-cols (r:rs) = zipWith (:) r (columns rs)
+cols (r:rs) = zipWith (:) r (cols rs)
 
 boxs :: Matrix a -> Matrix a
 boxs = map ungroup . ungroup . map cols . group . map group
