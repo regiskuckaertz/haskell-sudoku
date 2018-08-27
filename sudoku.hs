@@ -127,4 +127,7 @@ diff (a:as) b              = diff [a] b ++ diff as b
 reduce :: Eq a => Row [a] -> Row [a]
 reduce ass =
   let sings = concat (filter singular ass) in
-    map (`diff` sings) ass
+    map (trim sings) ass
+
+trim :: Eq a => [a] -> [a] -> [a]
+trim xs ys = if singular ys then ys else ys `diff` xs
