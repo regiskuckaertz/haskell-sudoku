@@ -58,28 +58,6 @@ cols (r:rs) = zipWith (:) r (cols rs)
 boxs :: Matrix a -> Matrix a
 boxs = map ungroup . ungroup . map cols . group . map group
 
-prune :: Matrix [Digit] -> Matrix [Digit]
-prune = pruneWith boxs . pruneWith rows . pruneWith cols
-
-pruneWith :: ( [[a]] -> [[a]] ) -> Matrix [Digit] -> Matrix [Digit]
-pruneWith f = f . map reduce . f
-
-singular :: [a] -> Bool
-singular [a] = True
-singular _   = False
-
-diff :: [a] -> [a] -> [a]
-diff [a] b
-  | elem a b = []
-  | otherwise = [a]
-diff [] _ = []
-diff (a:as) b = (diff [a] b) ++ (diff as b)
-
-trim :: [[a]] -> [[a]]
-trim ass =
-  let sings = concat (filter singular ass) in
-    ass minus sings
-
 -- we can check that `boxs` is an involution, assuming `cols` is:
 -- boxs . boxs = map ungroup . ungroup . map cols . group . map group .
 --               map ungroup . ungroup . map cols . group . map group
@@ -126,3 +104,27 @@ expand = cp . map cp
 cp :: [[a]] -> [[a]]
 cp [] = [[]]
 cp (xs:xss) = [ y:ys | y <- xs, ys <- xss' ] where xss' = cp xss
+
+-- prune the matrix of illicit combinations
+-- e.g. if a row holds `[d]`, we can eliminate `d` from all `[1..9]`
+-- in that row (same for columns and boxes)
+prune :: Matrix [Digit] -> Matrix [Digit]
+prune = pruneWith boxs . pruneWith rows . pruneWith cols
+  where pruneWith f = f . map reduce . f
+
+-- predicate for single-element lists
+singular :: [a] -> Bool
+singular [a] = True
+singular _   = False
+
+-- `diff as bs` deletes elements of `bs` from `as`
+diff :: Eq a => [a] -> [a] -> [a]
+diff []     _              = []
+diff [a]    b | a `elem` b = []
+              | otherwise  = [a]
+diff (a:as) b              = diff [a] b ++ diff as b
+
+reduce :: Eq a => Row [a] -> Row [a]
+reduce ass =
+  let sings = concat (filter singular ass) in
+    map (`diff` sings) ass
