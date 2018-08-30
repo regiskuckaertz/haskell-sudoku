@@ -41,7 +41,7 @@ digits :: [Digit]
 digits = ['1'..'9']
 
 sudoku :: Grid -> [Grid]
-sudoku = filter valid . expand . choices
+sudoku = filter valid . expand . prune . choices
 
 valid :: Grid -> Bool
 valid g = all nodups (rows g)
