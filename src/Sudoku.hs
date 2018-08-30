@@ -40,6 +40,9 @@ sample3 = ["1..9.7..3"
 digits :: [Digit]
 digits = ['1'..'9']
 
+output :: Grid -> String
+output = unlines
+
 sudoku :: Grid -> [Grid]
 sudoku = filter valid . expand . prune . choices
 
@@ -71,9 +74,11 @@ boxs = map ungroup . ungroup . map cols . group . map group
 -- { group . ungroup = id, twice and functor law }
 --             = id
 
-group :: [a] -> [[a]]
-group [] = []
-group r = take 3 r : group (drop 3 r)
+groupn :: Int -> [a] -> [[a]]
+groupn _ [] = []
+groupn n r = take n r : groupn n (drop n r)
+
+group = groupn 3
 
 ungroup :: [[a]] -> [a]
 ungroup = concat
